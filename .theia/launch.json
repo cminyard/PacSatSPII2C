@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "uart_echo",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "uart_echo",
+                "resourceId": "/uart_echo"
+            }
+        },
+        {
+            "name": "PacSatSPII2C",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "PacSatSPII2C",
+                "resourceId": "/PacSatSPII2C"
+            }
+        }
+    ]
+}
