@@ -126,3 +126,75 @@ void UARTMSP_eventCallback(
     UART_Handle handle, uint32_t event, uint32_t data, void *userArg)
 {
 }
+
+/*
+ *  =============================== GPIO ===============================
+ */
+
+#include <ti/drivers/GPIO.h>
+#include <ti/drivers/gpio/GPIOMSPM0.h>
+
+/* The range of pins available on this device */
+const uint_least8_t GPIO_pinLowerBound = 0;
+const uint_least8_t GPIO_pinUpperBound = 27;
+
+#include <ti/devices/msp/msp.h>
+#include <ti/driverlib/driverlib.h>
+#include <ti/driverlib/m0p/dl_core.h>
+/*
+ *  ======== gpioPinConfigs ========
+ *  Array of Pin configurations
+ */
+GPIO_PinConfig gpioPinConfigs[27] = {
+    GPIO_DO_NOT_CONFIG, /* PA0 */
+    GPIO_DO_NOT_CONFIG, /* PA1 */
+    GPIO_DO_NOT_CONFIG, /* PA2 */
+    GPIO_DO_NOT_CONFIG, /* PA3 */
+    GPIO_DO_NOT_CONFIG, /* PA4 */
+    GPIO_DO_NOT_CONFIG, /* PA5 */
+    GPIO_DO_NOT_CONFIG, /* PA6 */
+    GPIO_DO_NOT_CONFIG, /* PA7 */
+    GPIO_DO_NOT_CONFIG, /* PA8 */
+    GPIO_DO_NOT_CONFIG, /* PA9 */
+    GPIO_DO_NOT_CONFIG, /* PA10 */
+    GPIO_DO_NOT_CONFIG, /* PA11 */
+    GPIO_DO_NOT_CONFIG, /* PA12 */
+    GPIO_DO_NOT_CONFIG, /* PA13 */
+    GPIO_DO_NOT_CONFIG, /* PA14 */
+    GPIO_DO_NOT_CONFIG, /* PA15 */
+    GPIO_DO_NOT_CONFIG, /* PA16 */
+    GPIO_DO_NOT_CONFIG, /* PA17 */
+    GPIO_DO_NOT_CONFIG, /* PA18 */
+    GPIO_DO_NOT_CONFIG, /* PA19 */
+    GPIO_DO_NOT_CONFIG, /* PA20 */
+    GPIO_DO_NOT_CONFIG, /* PA21 */
+    GPIO_DO_NOT_CONFIG, /* PA22 */
+    GPIO_DO_NOT_CONFIG, /* PA23 */
+    GPIO_DO_NOT_CONFIG, /* PA24 */
+    GPIO_DO_NOT_CONFIG, /* PA25 */
+    GPIO_DO_NOT_CONFIG, /* PA26 */
+};
+
+/*
+ *  ======== gpioCallbackFunctions ========
+ *  Array of callback function pointers
+ *  Change at runtime with GPIO_setCallback()
+ */
+GPIO_CallbackFxn gpioCallbackFunctions[27] = {0};
+
+/*
+ *  ======== gpioUserArgs ========
+ *  Array of user argument pointers
+ *  Change at runtime with GPIO_setUserArg()
+ *  Get values with GPIO_getUserArg()
+ */
+void *gpioUserArgs[27];
+
+const GPIO_Config GPIO_config = {
+    .configs = (GPIO_PinConfig *) gpioPinConfigs,
+    .callbacks = (GPIO_CallbackFxn *) gpioCallbackFunctions,
+    .userArgs = gpioUserArgs,
+    .intPriority = (~0)
+};
+
+const uint_least8_t CONFIG_GPIO_ADC_ENABLE_CONST = CONFIG_GPIO_ADC_ENABLE;

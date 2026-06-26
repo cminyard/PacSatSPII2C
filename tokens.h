@@ -8,6 +8,8 @@
 #ifndef TOKENS_H
 #define TOKENS_H
 
+#include <stdbool.h>
+
 char *first_token(char *str, char **state);
 char *next_token(char **state);
 
@@ -15,7 +17,7 @@ char *next_token(char **state);
  * Convert a token to a uint.  If invalid, it will print "name: <error>"
  * and return false.  Otherwise it puts the value in val and returns true.
  */
-bool token_to_uint(char *tok, unsigned int *val, int base, char *name);
+bool token_to_uint(const char *tok, unsigned int *val, int base, char *name);
 
 /*
  * Like the above, but gets the token from the token state and validates

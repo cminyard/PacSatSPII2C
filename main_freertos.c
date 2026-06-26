@@ -52,7 +52,7 @@
 extern void *mainThread(void *arg0);
 
 /* Stack size in bytes */
-#define THREADSTACKSIZE configMINIMAL_STACK_SIZE * 4
+#define THREADSTACKSIZE configMINIMAL_STACK_SIZE * 5
 
 /* Set up the hardware ready to run this demo */
 static void prvSetupHardware(void);

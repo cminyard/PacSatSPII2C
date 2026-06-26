@@ -5,7 +5,8 @@
  *  SPDX-License-Identifier: GPL-2.0-only
  */
 
-#include <stype.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 #include "spii2c.h"
 #include "tokens.h"
@@ -49,13 +50,13 @@ next_token(char **state)
 }
 
 bool
-token_to_uint(char *tok, unsigned int *val, int base, char *name)
+token_to_uint(const char *tok, unsigned int *val, int base, char *name)
 {
     char *end;
 
     *val = strtoul(tok, &end, base);
     if (*end != '\0') {
-	printf("%s: Invalid value '%s'\n", name);
+	printf("%s: Invalid value '%s'\n", name, tok);
 	return false;
     }
     return true;
@@ -64,9 +65,9 @@ token_to_uint(char *tok, unsigned int *val, int base, char *name)
 bool
 next_token_uint(char **state, unsigned int *val, int base, char *name)
 {
-    char *t = next_token(state);
+    char *tok = next_token(state);
 
-    if (!t) {
+    if (!tok) {
 	printf("%s: Value is missing\n", name);
 	return false;
     }

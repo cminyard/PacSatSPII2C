@@ -48,13 +48,18 @@
 #define SYSCONFIG_WEAK __attribute__((weak))
 #endif
 
-#include <stdio.h>
+#define POWER_STARTUP_DELAY                                                (16)
+
+/* UART */
 #include <ti/drivers/UART.h>
 #include <ti/drivers/uart/UARTMSPM0.h>
 
 #define CONFIG_UART_COUNT 1
 #define CONFIG_UART_BUFFER_LENGTH 1
 #define CONFIG_Display_COUNT 1
+
+#define CONFIG_UART_0_INST UART0
+#define CONFIG_UART_BAUD_RATE 9600
 
 extern const uint_least8_t CONFIG_UART_0;
 extern const uint_least8_t UART_count;
@@ -64,21 +69,45 @@ uint8_t txBuffer[CONFIG_UART_BUFFER_LENGTH];
 
 /* clang-format on */
 void UART0_IRQHandler(void);
-/*
- *  ======== SYSCFG_DL_init ========
- *  Perform all required MSP DL initialization
- *
- *  This function should be called once at a point before any use of
- *  MSP DL.
- */
 
-/* clang-format off */
+/* GPIO */
+#include <ti/driverlib/dl_gpio.h>
 
-#define POWER_STARTUP_DELAY                                                (16)
+/* Power on/off the ADC. */
+extern const uint_least8_t CONFIG_GPIO_ADC_ENABLE_CONST;
+#define CONFIG_GPIO_ADC_ENABLE 25  //PA25
+#define CONFIG_GPIO_ADC_ENABLE_IOMUX IOMUX_PINCM69
 
+/* Power on/off the external antenna controller power. */
+extern const uint_least8_t CONFIG_GPIO_ANT_POW_CONST;
+#define CONFIG_GPIO_ANT_POW 21  //PA21
+#define CONFIG_GPIO_ANT_POW_IOMUX IOMUX_PINCM56
 
-/* Defines for CONFIG_UART_0 */
-#define CONFIG_UART_0_INST                                                 UART0
-#define CONFIG_UART_BAUD_RATE                                           (9600)
+/* Extra pin to the antenna control connector pin 10. */
+extern const uint_least8_t CONFIG_GPIO_EXTRA_CONST;
+#define CONFIG_GPIO_EXTRA 23  //PA23
+#define CONFIG_GPIO_EXTRA_IOMUX IOMUX_PINCM67
+
+/* PC104 GPIO7. */
+extern const uint_least8_t CONFIG_GPIO_PC104_7_CONST;
+#define CONFIG_GPIO_PC104_7 26  //PA26
+#define CONFIG_GPIO_PC104_7_IOMUX IOMUX_PINCM73
+
+/* PC104 GPIO8. */
+extern const uint_least8_t CONFIG_GPIO_PC104_8_CONST;
+#define CONFIG_GPIO_PC104_8 16  //PA16
+#define CONFIG_GPIO_PC104_8_IOMUX IOMUX_PINCM42
+
+/* The range of pins available on this device */
+extern const uint_least8_t GPIO_pinLowerBound;
+extern const uint_least8_t GPIO_pinUpperBound;
+
+/* Negative Logic */
+#define CONFIG_ADC_ON 0
+#define CONFIG_ADC_OFF 1
+
+/* Negative Logic */
+#define CONFIG_ANT_POW_ON 0
+#define CONFIG_ANT_POW_OFF 1
 
 #endif /* ti_drivers_config_h */
