@@ -1,3 +1,9 @@
+/*
+ *  SPII2C - A program for a SPI to I2C converter device
+ *  Copyright (C) 2036  Corey Minyard <corey@minyard.net
+ *
+ *  SPDX-License-Identifier: GPL-2.0-only
+ */
 
 #ifndef COMMANDS_H
 #define COMMANDS_H

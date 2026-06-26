@@ -1,47 +1,15 @@
+/*
+ *  SPII2C - A program for a SPI to I2C converter device
+ *  Copyright (C) 2036  Corey Minyard <corey@minyard.net
+ *
+ *  SPDX-License-Identifier: GPL-2.0-only
+ */
 
 #include <string.h>
-#include <ctype.h>
 
 #include "spii2c.h"
+#include "tokens.h"
 #include "commands.h"
-
-static char *i_next_token(char *str, char **state)
-{
-    char *rv;
-
-    if (!str)
-	str = *state;
-
-    while (isspace(*str))
-	str++;
-    if (!*str)
-	return NULL;
-
-    rv = str;
-
-    while (*str && !isspace(*str))
-	str++;
-
-    if (*str) {
-	*str = '\0';
-	str++;
-    }
-    *state = str;
-
-    return rv;
-}
-
-char *
-first_token(char *str, char **state)
-{
-    return i_next_token(str, state);
-}
-
-char *
-next_token(char **state)
-{
-    return i_next_token(NULL, state);
-}
 
 static void help_command(char **tokst);
 
