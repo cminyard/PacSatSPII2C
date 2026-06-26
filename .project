@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>asdf1</name>
+	<name>PacSatSPII2C</name>
 	<comment></comment>
 	<projects>
 		<project>freertos_builds_LP_MSPM0L2228_release_ticlang</project>
