@@ -16,6 +16,8 @@
 
 #include <ti/drivers/GPIO.h>
 
+/* GPIO */
+
 static bool
 gpio_is_input(unsigned int idx)
 {
@@ -108,6 +110,69 @@ gpio_command(char **tokst)
     printf("%s: %d\n", tok, gpio_read(gpionum, nlogic));
 }
 
+/* I2C */
+
+static void
+i2c_command(char **tokst)
+{
+    unsigned int i2cnum;
+    unsigned int tgtaddr;
+    unsigned int rx_count;
+    uint8_t rx_data[32];
+    unsigned int tx_count = 0;
+    uint8_t tx_data[32];
+    char *tok;
+    unsigned int i, v;
+    
+    if (!next_token_uint(tokst, &i2cnum, 0, "i2cnum"))
+	return;
+    if (!next_token_uint(tokst, &tgtaddr, 0, "tgtaddr"))
+	return;
+    if (!next_token_uint(tokst, &rx_count, 0, "rx count"))
+	return;
+    if (i2cnum >= CONFIG_I2C_COUNT) {
+	printf("i2cnum out of range, ranges from 0-%d\n",
+	       CONFIG_I2C_COUNT - 1);
+	return;
+    }
+    if (tgtaddr > 0xff) {
+	printf("tgtaddr out of range, ranges from 0-255\n");
+	return;
+    }
+    if (rx_count > sizeof(rx_data)) {
+	printf("rx count too large, max is %d\n", sizeof(rx_data));
+	return;
+    }
+
+    tok = next_token(tokst);
+    while (tok) {
+	if (tx_count >= sizeof(tx_data)) {
+	    printf("Too many tx bytes, limit is %d\n", sizeof(tx_data));
+	    return;
+	}
+	if (!token_to_uint(tok, &v, 0, "txval"))
+	    return;
+	tx_data[tx_count] = v;
+	tx_count++;
+	tok = next_token(tokst);
+    }
+
+    if (!i2c_transaction(i2cnum, tgtaddr, tx_data, tx_count, rx_data,
+			 rx_count)) {
+	printf("I2C transaction failed\n");
+    } else {
+	printf("Read: ");
+	for (i = 0; i < rx_count; i++) {
+	    if (i % 16 == 0)
+		printf("\n ");
+	    printf(" %2.2x", rx_data[i]);
+	}
+	printf("\n");
+    }
+}
+
+/* Main command structure. */
+
 static void help_command(char **tokst);
 
 const static struct command {
@@ -125,6 +190,11 @@ const static struct command {
 	"gpio", gpio_command,
 	"[gpioname [newvalue]]",
 	"Print and optionally set the value of a gpio."
+    },
+    {
+	"i2c", i2c_command,
+	"<i2cnum> <tgtaddr> <rx count> [tx1 [tx2 [....]]]",
+	"Run an I2C transaction write the tx byes and read rx count bytes."
     },
     {}
 };

@@ -198,3 +198,102 @@ const GPIO_Config GPIO_config = {
 };
 
 const uint_least8_t CONFIG_GPIO_ADC_ENABLE_CONST = CONFIG_GPIO_ADC_ENABLE;
+
+/*
+ * =========================== I2C Controller ===============================
+ */
+
+#include <ti/drivers/I2C.h>
+#include <ti/drivers/i2c/I2CMSPM0.h>
+
+/*
+ *  ======== i2cObjects ========
+ */
+I2CMSPM0_Object I2CMSPM0Objects[CONFIG_I2C_COUNT];
+
+/*
+ *  ======== i2cHWAttrs ========
+ */
+const I2CMSPM0_HWAttrs I2CMSPM0HWAttrs[CONFIG_I2C_COUNT] = {
+    {
+        .i2c         = I2C_A_INST,
+        .intNum      = I2C_A_INT_IRQN,
+        .intPriority = (~0),
+
+        .sdaPincm    = GPIO_I2C_A_IOMUX_SDA,
+        .sdaPinIndex = GPIO_I2C_A_SDA_PIN,
+        .sdaPinMux   = GPIO_I2C_A_IOMUX_SDA_FUNC,
+
+        .sclPincm    = GPIO_I2C_A_IOMUX_SCL,
+        .sclPinIndex = GPIO_I2C_A_SCL_PIN,
+        .sclPinMux   = GPIO_I2C_A_IOMUX_SCL_FUNC,
+
+        .clockSource              = DL_I2C_CLOCK_BUSCLK,
+        .clockDivider             = DL_I2C_CLOCK_DIVIDE_1,
+        .txIntFifoThr             = DL_I2C_TX_FIFO_LEVEL_BYTES_1,
+        .rxIntFifoThr             = DL_I2C_RX_FIFO_LEVEL_BYTES_1,
+        .isClockStretchingEnabled = true,
+        .i2cClk                   = I2C_CLOCK_MHZ,
+    },
+    {
+        .i2c         = I2C_B_INST,
+        .intNum      = I2C_B_INT_IRQN,
+        .intPriority = (~0),
+
+        .sdaPincm    = GPIO_I2C_B_IOMUX_SDA,
+        .sdaPinIndex = GPIO_I2C_B_SDA_PIN,
+        .sdaPinMux   = GPIO_I2C_B_IOMUX_SDA_FUNC,
+
+        .sclPincm    = GPIO_I2C_B_IOMUX_SCL,
+        .sclPinIndex = GPIO_I2C_B_SCL_PIN,
+        .sclPinMux   = GPIO_I2C_B_IOMUX_SCL_FUNC,
+
+        .clockSource              = DL_I2C_CLOCK_BUSCLK,
+        .clockDivider             = DL_I2C_CLOCK_DIVIDE_1,
+        .txIntFifoThr             = DL_I2C_TX_FIFO_LEVEL_BYTES_1,
+        .rxIntFifoThr             = DL_I2C_RX_FIFO_LEVEL_BYTES_1,
+        .isClockStretchingEnabled = true,
+        .i2cClk                   = I2C_CLOCK_MHZ,
+    },
+    {
+        .i2c         = I2C_ADC_INST,
+        .intNum      = I2C_ADC_INT_IRQN,
+        .intPriority = (~0),
+
+        .sdaPincm    = GPIO_I2C_ADC_IOMUX_SDA,
+        .sdaPinIndex = GPIO_I2C_ADC_SDA_PIN,
+        .sdaPinMux   = GPIO_I2C_ADC_IOMUX_SDA_FUNC,
+
+        .sclPincm    = GPIO_I2C_ADC_IOMUX_SCL,
+        .sclPinIndex = GPIO_I2C_ADC_SCL_PIN,
+        .sclPinMux   = GPIO_I2C_ADC_IOMUX_SCL_FUNC,
+
+        .clockSource              = DL_I2C_CLOCK_BUSCLK,
+        .clockDivider             = DL_I2C_CLOCK_DIVIDE_1,
+        .txIntFifoThr             = DL_I2C_TX_FIFO_LEVEL_BYTES_1,
+        .rxIntFifoThr             = DL_I2C_RX_FIFO_LEVEL_BYTES_1,
+        .isClockStretchingEnabled = true,
+        .i2cClk                   = I2C_CLOCK_MHZ,
+    },
+};
+
+/*
+ *  ======== I2C_config ========
+ */
+const I2C_Config I2C_config[CONFIG_I2C_COUNT] = {
+    {
+	.object = &I2CMSPM0Objects[I2C_A],
+	.hwAttrs = &I2CMSPM0HWAttrs[I2C_A]
+    },
+    {
+	.object = &I2CMSPM0Objects[I2C_B],
+	.hwAttrs = &I2CMSPM0HWAttrs[I2C_B]
+    },
+    {
+	.object = &I2CMSPM0Objects[I2C_ADC],
+	.hwAttrs = &I2CMSPM0HWAttrs[I2C_ADC]
+    },
+};
+
+//const uint_least8_t CONFIG_I2C_CONST = CONFIG_I2C_0;
+const uint_least8_t I2C_count        = CONFIG_I2C_COUNT;

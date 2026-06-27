@@ -110,4 +110,60 @@ extern const uint_least8_t GPIO_pinUpperBound;
 #define CONFIG_ANT_POW_ON 0
 #define CONFIG_ANT_POW_OFF 1
 
+/* I2C */
+//extern const uint_least8_t CONFIG_I2C_CONTROLLER_CONST;
+
+/* ======== I2C Addresses and Speeds ======== */
+#include <ti/drivers/I2C.h>
+
+/* ---- CONFIG_I2C_CONTROLLER I2C bus components ---- */
+
+#define I2C_A 0
+#define I2C_B 1
+#define I2C_ADC 2
+
+#define I2C_CLOCK_MHZ 32
+
+/* CONFIG_I2C_TMP max speed (supported by all components) */
+#define CONFIG_I2C_CONTROLLER_MAXSPEED (100U) /* kbps */
+#define CONFIG_I2C_CONTROLLER_MAXBITRATE ((I2C_BitRate) I2C_100kHz)
+
+#define CONFIG_I2C_COUNT 3
+
+#define I2C_A_INST I2C0
+#define I2C_A_IRQHandler I2C0_IRQHandler
+#define I2C_A_INT_IRQN I2C0_INT_IRQn
+
+#define GPIO_I2C_A_SDA_PIN 10
+#define GPIO_I2C_A_IOMUX_SDA IOMUX_PINCM25
+#define GPIO_I2C_A_IOMUX_SDA_FUNC IOMUX_PINCM25_PF_I2C0_SDA
+
+#define GPIO_I2C_A_SCL_PIN 22
+#define GPIO_I2C_A_IOMUX_SCL IOMUX_PINCM57
+#define GPIO_I2C_A_IOMUX_SCL_FUNC IOMUX_PINCM57_PF_I2C0_SCL
+
+#define I2C_B_INST I2C2
+#define I2C_B_IRQHandler I2C2_IRQHandler
+#define I2C_B_INT_IRQN I2C2_INT_IRQn
+
+#define GPIO_I2C_B_SDA_PIN 24
+#define GPIO_I2C_B_IOMUX_SDA IOMUX_PINCM68
+#define GPIO_I2C_B_IOMUX_SDA_FUNC IOMUX_PINCM68_PF_I2C2_SDA
+
+#define GPIO_I2C_B_SCL_PIN 15
+#define GPIO_I2C_B_IOMUX_SCL IOMUX_PINCM41
+#define GPIO_I2C_B_IOMUX_SCL_FUNC IOMUX_PINCM41_PF_I2C2_SCL
+
+#define I2C_ADC_INST I2C1
+#define I2C_ADC_IRQHandler I2C1_IRQHandler
+#define I2C_ADC_INT_IRQN I2C1_INT_IRQn
+
+#define GPIO_I2C_ADC_SDA_PIN 18
+#define GPIO_I2C_ADC_IOMUX_SDA IOMUX_PINCM50
+#define GPIO_I2C_ADC_IOMUX_SDA_FUNC IOMUX_PINCM50_PF_I2C1_SDA
+
+#define GPIO_I2C_ADC_SCL_PIN 17
+#define GPIO_I2C_ADC_IOMUX_SCL IOMUX_PINCM49
+#define GPIO_I2C_ADC_IOMUX_SCL_FUNC IOMUX_PINCM49_PF_I2C1_SCL
+
 #endif /* ti_drivers_config_h */
