@@ -1,0 +1,28 @@
+/*
+ *  SPII2C - A program for a SPI to I2C converter device
+ *  Copyright (C) 2036  Corey Minyard <corey@minyard.net
+ *
+ *  SPDX-License-Identifier: GPL-2.0-only
+ */
+
+#ifndef SPI_H
+#define SPI_H
+
+#include "list.h"
+
+#define SPI_MSG_LEN 16
+
+void spi_init(void);
+
+void *spiThread(void *arg0);
+
+extern void (*spi_recv_msg_handler)(unsigned char *msg);
+
+struct spi_tx_msg {
+    struct dlist_link link;
+
+    unsigned char buf[SPI_MSG_LEN];
+    void (*done)(struct spi_tx_msg *msg);
+};
+
+#endif /* SPI_H */

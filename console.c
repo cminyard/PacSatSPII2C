@@ -30,7 +30,7 @@ console_init(void (*handler)(char *cmd))
     }
 }
     
-void
+void *
 consoleThread(void *arg0)
 {
     char c;

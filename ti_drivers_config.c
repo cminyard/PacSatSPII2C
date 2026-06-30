@@ -297,3 +297,123 @@ const I2C_Config I2C_config[CONFIG_I2C_COUNT] = {
 
 //const uint_least8_t CONFIG_I2C_CONST = CONFIG_I2C_0;
 const uint_least8_t I2C_count        = CONFIG_I2C_COUNT;
+
+/*
+ *  =============================== DMA ===============================
+ */
+#include <ti/drivers/dma/DMAMSPM0.h>
+
+const uint_least8_t CONFIG_DMA_0               = 0;
+const uint_least8_t DMA_Count                  = CONFIG_DMA_COUNT;
+DMAMSPM0_Object DMAObject[CONFIG_DMA_CH_COUNT] = {
+    {
+	.dmaTransfer = {
+	    .txTrigger              = SPI0_TX_INST_DMA_TRIGGER_0,
+	    .txTriggerType          = DL_DMA_TRIGGER_TYPE_EXTERNAL,
+	    .transferMode           = DL_DMA_SINGLE_TRANSFER_MODE,
+	    .extendedMode           = DL_DMA_NORMAL_MODE,
+	    .destWidth              = DL_DMA_WIDTH_BYTE,
+	    .srcWidth               = DL_DMA_WIDTH_BYTE,
+	    .srcIncrement           = DL_DMA_ADDR_INCREMENT,
+	    .dmaChannel             = DMA_SPI0_TX_CHAN_ID,
+	    .dmaTransferSource      = NULL,
+	    .dmaTransferDestination = NULL,
+	    .enableDMAISR           = false,
+	}
+    },
+    {
+	.dmaTransfer = {
+	    .rxTrigger              = SPI0_RX_INST_DMA_TRIGGER_1,
+	    .rxTriggerType          = DL_DMA_TRIGGER_TYPE_EXTERNAL,
+	    .transferMode           = DL_DMA_SINGLE_TRANSFER_MODE,
+	    .extendedMode           = DL_DMA_NORMAL_MODE,
+	    .destWidth              = DL_DMA_WIDTH_BYTE,
+	    .srcWidth               = DL_DMA_WIDTH_BYTE,
+	    .destIncrement          = DL_DMA_ADDR_INCREMENT,
+	    .dmaChannel             = DMA_SPI0_RX_CHAN_ID,
+	    .dmaTransferSource      = NULL,
+	    .dmaTransferDestination = NULL,
+	    .enableDMAISR           = false,
+	}
+    },
+};
+
+static const DMAMSPM0_HWAttrs DMAMSP0HWAttrs[CONFIG_DMA_COUNT] = {
+    {
+        .dmaIsrFxn          = NULL,
+        .intPriority        = DEFAULT_DMA_PRIORITY,
+        .roundRobinPriority = 0,
+    },
+};
+const DMAMSPM0_Cfg DMAMSPM0_Config[CONFIG_DMA_COUNT] = {
+    {
+        &DMAMSP0HWAttrs[CONFIG_DMA_0],
+        &DMAObject[CONFIG_DMA_0],
+    },
+};
+
+/*
+ *  =============================== SPI ===============================
+ */
+#include <ti/drivers/SPI.h>
+#include <ti/drivers/spi/SPIMSPM0.h>
+
+#include <ti/devices/DeviceFamily.h>
+
+#define CONFIG_SPI_COUNT 1
+
+/*
+ *  ======== SPIMSPM0_objects ========
+ */
+SPIMSPM0_Object SPIMSPM0_objects[CONFIG_SPI_COUNT];
+
+/*
+ *  ======== SPIMSPM0_hwAttrs ========
+ */
+const SPIMSPM0_HWAttrs SPIMSPM0_hwAttrs[CONFIG_SPI_COUNT] = {
+    {
+        .spi               = SPI0_INST,
+        .intNum            = SPI0_INST_INT_IRQN,
+        .intPriority       = (~0),
+        .clockSource       = DL_SPI_CLOCK_BUSCLK,
+        .clockDivider      = DL_SPI_CLOCK_DIVIDE_RATIO_1,
+        .defaultTxBufValue = 0xFF,
+
+        .pociPin    = GPIO_SPI0_POCI_PIN,
+        .pociPincm  = GPIO_SPI0_IOMUX_POCI,
+        .pociPinMux = GPIO_SPI0_IOMUX_POCI_FUNC,
+
+        .picoPin    = GPIO_SPI0_PICO_PIN,
+        .picoPincm  = GPIO_SPI0_IOMUX_PICO,
+        .picoPinMux = GPIO_SPI0_IOMUX_PICO_FUNC,
+
+        .sclkPin    = GPIO_SPI0_SCLK_PIN,
+        .sclkPincm  = GPIO_SPI0_IOMUX_SCLK,
+        .sclkPinMux = GPIO_SPI0_IOMUX_SCLK_FUNC,
+
+        .csnPin    = GPIO_SPI0_CS0_PIN,
+        .csnPincm  = GPIO_SPI0_IOMUX_CS0,
+        .csnPinMux = GPIO_SPI0_IOMUX_CS0_FUNC,
+
+        .txFifoThreshold = DL_SPI_TX_FIFO_LEVEL_ONE_FRAME,
+        .rxFifoThreshold = DL_SPI_RX_FIFO_LEVEL_ONE_FRAME,
+        .cssel           = 0,
+        .noOfDMAChannels = 2,
+    },
+};
+
+/*
+ *  ======== SPI_config ========
+ */
+const SPI_Config SPI_config[CONFIG_SPI_COUNT] = {
+    /* CONFIG_SPI_PERIPHERAL */
+    /* LaunchPad SPI Bus with Chip Select */
+    {
+	.fxnTablePtr = &SPIMSPM0_fxnTable,
+        .object   = &SPIMSPM0_objects[ACP_HOST_SPI],
+        .hwAttrs  = &SPIMSPM0_hwAttrs[ACP_HOST_SPI]
+    },
+};
+
+const uint_least8_t SPI_count = CONFIG_SPI_COUNT;
+

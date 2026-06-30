@@ -11,6 +11,7 @@
 
 #include "spii2c.h"
 #include "tokens.h"
+#include "i2c.h"
 #include "commands.h"
 
 

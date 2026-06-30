@@ -17,7 +17,7 @@
 void console_init(void (*handler)(char *cmd));
 
 /* The thread handling the console. */
-void consoleThread(void *arg0);
+void *consoleThread(void *arg0);
 
 
 #endif /* CONSOLE_H */

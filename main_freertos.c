@@ -49,10 +49,9 @@
 #include "ti_drivers_config.h"
 #include "ti_msp_dl_config.h"
 
-extern void *mainThread(void *arg0);
+#include "spii2c.h"
 
-/* Stack size in bytes */
-#define THREADSTACKSIZE configMINIMAL_STACK_SIZE * 5
+extern void *mainThread(void *arg0);
 
 /* Set up the hardware ready to run this demo */
 static void prvSetupHardware(void);
@@ -81,7 +80,7 @@ int main(void)
     priParam.sched_priority = 1;
     retc                    = pthread_attr_setschedparam(&attrs, &priParam);
     retc |= pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
-    retc |= pthread_attr_setstacksize(&attrs, THREADSTACKSIZE);
+    retc |= pthread_attr_setstacksize(&attrs, MAIN_THREAD_STACK_SIZE);
     if (retc != 0) {
         /* failed to set attributes */
         while (1) {

@@ -15,6 +15,13 @@
 #include <task.h>
 
 #define printf iprintf
+/*
+ *__attribute__((__format__(printf, 1, 2)))
+ *   This should work, why doesn't it?
+ */ 
 int iprintf(const char *fmt, ...);
+
+#define MAIN_THREAD_STACK_SIZE configMINIMAL_STACK_SIZE * 5
+#define SPI_THREAD_STACK_SIZE configMINIMAL_STACK_SIZE * 5
 
 #endif /* SPII2C_H */

@@ -1,6 +1,7 @@
 
 #include "ti_drivers_config.h"
 #include "spii2c.h"
+#include "i2c.h"
 
 static I2C_Handle i2c_handles[CONFIG_I2C_COUNT];
 

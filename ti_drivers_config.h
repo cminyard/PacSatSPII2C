@@ -72,43 +72,44 @@ void UART0_IRQHandler(void);
 
 /* GPIO */
 #include <ti/driverlib/dl_gpio.h>
+#include <ti/drivers/GPIO.h>
 
 /* Power on/off the ADC. */
-extern const uint_least8_t CONFIG_GPIO_ADC_ENABLE_CONST;
 #define CONFIG_GPIO_ADC_ENABLE 25  //PA25
 #define CONFIG_GPIO_ADC_ENABLE_IOMUX IOMUX_PINCM69
-
-/* Power on/off the external antenna controller power. */
-extern const uint_least8_t CONFIG_GPIO_ANT_POW_CONST;
-#define CONFIG_GPIO_ANT_POW 21  //PA21
-#define CONFIG_GPIO_ANT_POW_IOMUX IOMUX_PINCM56
-
-/* Extra pin to the antenna control connector pin 10. */
-extern const uint_least8_t CONFIG_GPIO_EXTRA_CONST;
-#define CONFIG_GPIO_EXTRA 23  //PA23
-#define CONFIG_GPIO_EXTRA_IOMUX IOMUX_PINCM67
-
-/* PC104 GPIO7. */
-extern const uint_least8_t CONFIG_GPIO_PC104_7_CONST;
-#define CONFIG_GPIO_PC104_7 26  //PA26
-#define CONFIG_GPIO_PC104_7_IOMUX IOMUX_PINCM73
-
-/* PC104 GPIO8. */
-extern const uint_least8_t CONFIG_GPIO_PC104_8_CONST;
-#define CONFIG_GPIO_PC104_8 16  //PA16
-#define CONFIG_GPIO_PC104_8_IOMUX IOMUX_PINCM42
-
-/* The range of pins available on this device */
-extern const uint_least8_t GPIO_pinLowerBound;
-extern const uint_least8_t GPIO_pinUpperBound;
-
 /* Negative Logic */
 #define CONFIG_ADC_ON 0
 #define CONFIG_ADC_OFF 1
 
+/* Power on/off the external antenna controller power. */
+#define CONFIG_GPIO_ANT_POW 21  //PA21
+#define CONFIG_GPIO_ANT_POW_IOMUX IOMUX_PINCM56
 /* Negative Logic */
 #define CONFIG_ANT_POW_ON 0
 #define CONFIG_ANT_POW_OFF 1
+
+/* Extra pin to the antenna control connector pin 10. */
+#define CONFIG_GPIO_EXTRA 23  //PA23
+#define CONFIG_GPIO_EXTRA_IOMUX IOMUX_PINCM67
+
+/* PC104 GPIO7. */
+#define CONFIG_GPIO_PC104_7 26  //PA26
+#define CONFIG_GPIO_PC104_7_IOMUX IOMUX_PINCM73
+
+/* PC104 GPIO8. */
+#define CONFIG_GPIO_PC104_8 16  //PA16
+#define CONFIG_GPIO_PC104_8_IOMUX IOMUX_PINCM42
+
+/* IRQ from the antenna control processor to the main processor. */
+#define CONFIG_GPIO_ANT_IRQ 3  //PA3
+#define CONFIG_GPIO_ANT_IRQ_IOMUX IOMUX_PINCM8
+/* Negative Logic */
+#define CONFIG_ANT_IRQ_ON 0
+#define CONFIG_ANT_IRQ_OFF 1
+
+/* The range of pins available on this device */
+extern const uint_least8_t GPIO_pinLowerBound;
+extern const uint_least8_t GPIO_pinUpperBound;
 
 /* I2C */
 //extern const uint_least8_t CONFIG_I2C_CONTROLLER_CONST;
@@ -165,5 +166,42 @@ extern const uint_least8_t GPIO_pinUpperBound;
 #define GPIO_I2C_ADC_SCL_PIN 17
 #define GPIO_I2C_ADC_IOMUX_SCL IOMUX_PINCM49
 #define GPIO_I2C_ADC_IOMUX_SCL_FUNC IOMUX_PINCM49_PF_I2C1_SCL
+
+/* DMA */
+#define CONFIG_DMA_COUNT 1
+#define CONFIG_DMA_CH_COUNT 2
+#define DEFAULT_DMA_PRIORITY 31
+
+#define DMA_SPI0_TX_CHAN_ID 0
+#define SPI0_TX_INST_DMA_TRIGGER_0 DMA_SPI0_TX_TRIG
+#define DMA_SPI0_RX_CHAN_ID 1
+#define SPI0_RX_INST_DMA_TRIGGER_1 DMA_SPI0_RX_TRIG
+
+/* SPI */
+#include <ti/drivers/SPI.h>
+
+#define ACP_HOST_SPI 0
+
+#define SPI0_INST SPI0
+#define SPI0_INST_IRQHandler SPI0_IRQHandler
+#define SPI0_INST_INT_IRQN SPI0_INT_IRQn
+
+#define GPIO_SPI0_PICO_PIN 9 /* PA8 */
+#define GPIO_SPI0_IOMUX_PICO IOMUX_PINCM20
+#define GPIO_SPI0_IOMUX_PICO_FUNC IOMUX_PINCM20_PF_SPI0_PICO
+
+#define GPIO_SPI0_POCI_PIN 4 /* PA4 */
+#define GPIO_SPI0_IOMUX_POCI IOMUX_PINCM9
+#define GPIO_SPI0_IOMUX_POCI_FUNC IOMUX_PINCM9_PF_SPI0_POCI
+
+#define GPIO_SPI0_SCLK_PIN 11 /* PA11 */
+#define GPIO_SPI0_IOMUX_SCLK IOMUX_PINCM26
+#define GPIO_SPI0_IOMUX_SCLK_FUNC IOMUX_PINCM26_PF_SPI0_SCLK
+
+#define GPIO_SPI0_CS0_PIN 2 /* PA2 */
+#define GPIO_SPI0_IOMUX_CS0 IOMUX_PINCM7
+#define GPIO_SPI0_IOMUX_CS0_FUNC IOMUX_PINCM7_PF_SPI0_CS0
+#define CONFIG_ANT_CS_ON 0
+#define CONFIG_ANT_CS_OFF 1
 
 #endif /* ti_drivers_config_h */
