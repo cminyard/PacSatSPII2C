@@ -14,13 +14,14 @@
 #include "tokens.h"
 #include "i2c.h"
 #include "spi.h"
+#include "gpio.h"
 #include "commands.h"
 
 #include <ti/drivers/GPIO.h>
 
 /* GPIO */
 
-static bool
+bool
 gpio_is_input(unsigned int idx)
 {
     GPIO_PinConfig cfg;
@@ -32,7 +33,7 @@ gpio_is_input(unsigned int idx)
     return cfg & 1;
 }
 
-static unsigned int
+unsigned int
 gpio_read(unsigned int idx, bool nlogic)
 {
     unsigned int val;
@@ -81,7 +82,7 @@ gpio_command(char **tokst)
 	return;
     }
 
-    if (strcmp(tok, "adcpos") == 0) {
+    if (strcmp(tok, "adcpow") == 0) {
 	gpionum = CONFIG_GPIO_ADC_ENABLE;
 	nlogic = true;
     } else if (strcmp(tok, "antpow") == 0) {

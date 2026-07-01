@@ -21,6 +21,7 @@
 #include "commands.h"
 #include "i2c.h"
 #include "spi.h"
+#include "gpio.h"
 
 /*
  * The code below is the main code to convert SPI transaction to I2C
@@ -43,13 +44,47 @@ struct spi_to_i2c spi_to_i2c[CONFIG_I2C_COUNT];
 
 #define ACP_I2C_CMD 1
 #define ACP_I2C_RSP 2
+#define ACP_SET_GPIO 3
+#define ACP_GET_GPIO 4
+#define ACP_GPIO_VALUE 5
+
+#define NUM_ACP_GPIOS 5
+struct gpio_acp {
+    unsigned int gpionum;
+    volatile bool inuse;
+    struct spi_tx_msg rspmsg;
+} gpio_acp[NUM_ACP_GPIOS] = {
+    {
+	.gpionum = CONFIG_GPIO_PC104_8,
+    },
+    {
+	.gpionum = CONFIG_GPIO_ANT_POW,
+    },
+    {
+	.gpionum = CONFIG_GPIO_EXTRA,
+    },
+    {
+	.gpionum = CONFIG_GPIO_ADC_ENABLE,
+    },
+    {
+	.gpionum = CONFIG_GPIO_PC104_7,
+    },
+};
 
 static sem_t spi_to_i2c_wake;
 
+static void gpio_msg_done(struct spi_tx_msg *msg)
+{
+    struct gpio_acp *acp = container_of(msg, struct gpio_acp, rspmsg);
+
+    acp->inuse = false;
+}
 static void handle_spi_recv_msg(unsigned char *msg)
 {
     unsigned int i2cnum;
     struct spi_to_i2c *s2i;
+    struct gpio_acp *acp;
+    struct spi_tx_msg *rsp;
 
     switch(msg[0]) {
     case ACP_I2C_CMD:
@@ -79,6 +114,32 @@ static void handle_spi_recv_msg(unsigned char *msg)
 	    sem_post(&spi_to_i2c_wake);
 	    break;
 	}
+	break;
+
+    case ACP_SET_GPIO:
+	if (msg[1] >= NUM_ACP_GPIOS)
+	    break;
+	acp = &gpio_acp[msg[1]];
+
+	if (gpio_is_input(acp->gpionum))
+	    break;
+
+	GPIO_write(acp->gpionum, msg[2]);
+	break;
+
+    case ACP_GET_GPIO:
+	if (msg[1] >= NUM_ACP_GPIOS)
+	    break;
+	acp = &gpio_acp[msg[1]];
+	if (acp->inuse)
+	    break;
+	acp->inuse = true;
+	rsp = &acp->rspmsg;
+	rsp->done = gpio_msg_done;
+	rsp->buf[0] = ACP_GPIO_VALUE;
+	rsp->buf[1] = msg[1];
+	rsp->buf[2] = gpio_read(acp->gpionum, false);
+	spi_send(rsp);
 	break;
 
     default: /* Ignore everything else. */
