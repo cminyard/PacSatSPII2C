@@ -8,9 +8,11 @@
 #include <pthread.h>
 #include <FreeRTOS.h>
 #include <task.h>
+#include <string.h>
 
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/I2C.h>
+#include <semaphore.h>
 
 #include "ti_drivers_config.h"
 
@@ -20,6 +22,104 @@
 #include "i2c.h"
 #include "spi.h"
 
+#define MAX_I2C_MSG_SIZE (SPI_MSG_LEN - 5)
+
+struct spi_to_i2c {
+    uint8_t txbuf[MAX_I2C_MSG_SIZE];
+    unsigned int txcount;
+    unsigned int rxcount;
+    volatile bool inuse;
+    volatile bool done;
+    struct i2c_transaction t;
+    struct spi_tx_msg rspmsg;
+};
+
+struct spi_to_i2c spi_to_i2c[CONFIG_I2C_COUNT];
+
+#define ACP_I2C_CMD 1
+#define ACP_I2C_RSP 2
+
+static sem_t spi_to_i2c_wake;
+
+static void handle_spi_recv_msg(unsigned char *msg)
+{
+    unsigned int i2cnum;
+    struct spi_to_i2c *s2i;
+
+    switch(msg[0]) {
+    case ACP_I2C_CMD:
+	if (msg[1] >= CONFIG_I2C_COUNT)
+	    break;
+	i2cnum = msg[1];
+	s2i = &spi_to_i2c[i2cnum];
+	if (s2i->inuse)
+	    break;
+	s2i->inuse = true;
+	s2i->t.status = false;
+
+	if (msg[2] >= MAX_I2C_MSG_SIZE)
+	    goto return_fail;
+	if (msg[3] >= MAX_I2C_MSG_SIZE)
+	    goto return_fail;
+	s2i->txcount = msg[2];
+	s2i->rxcount = msg[3];
+	memset(s2i->rspmsg.buf, 0, SPI_MSG_LEN);
+	memcpy(s2i->txbuf, &msg[5], s2i->txcount);
+	if (!i2c_transaction(&s2i->t, i2cnum, msg[4],
+			     s2i->txbuf, s2i->txcount,
+			     &s2i->rspmsg.buf[5], s2i->rxcount)) {
+	return_fail:
+	    /* Failed, send response now. */
+	    s2i->done = true;
+	    sem_post(&spi_to_i2c_wake);
+	    break;
+	}
+	break;
+
+    default: /* Ignore everything else. */
+	break;
+    }
+}
+
+static void spi_rsp_done(struct spi_tx_msg *msg)
+{
+    struct spi_to_i2c *s2i = container_of(msg, struct spi_to_i2c, rspmsg);
+
+    s2i->inuse = false;
+}
+
+static void spi_i2c_transaction_done(struct i2c_transaction *t)
+{
+    struct spi_to_i2c *s2i = container_of(t, struct spi_to_i2c, t);
+
+    s2i->done = true;
+    sem_post(&spi_to_i2c_wake);
+}
+
+static void *
+spiI2cThread(void *arg0)
+{
+    unsigned int i;
+    uint8_t *msg;
+
+    while (true) {
+	sem_wait(&spi_to_i2c_wake);
+
+	for (i = 0; i < CONFIG_I2C_COUNT; i++) {
+	    if (!spi_to_i2c[i].done)
+		continue;
+	    msg = spi_to_i2c[i].rspmsg.buf;
+	    msg[0] = ACP_I2C_RSP;
+	    msg[1] = i;
+	    msg[2] = spi_to_i2c[i].t.status;
+	    msg[3] = spi_to_i2c[i].rxcount;
+	    /* Message data is already in the buffer. */
+	    spi_to_i2c[i].done = false;
+	    spi_send(&spi_to_i2c[i].rspmsg);
+	}
+    }
+}
+
 void *
 mainThread(void *arg0)
 {
@@ -27,10 +127,26 @@ mainThread(void *arg0)
     pthread_attr_t task_attrs;
     struct sched_param task_params;
     int rv;
+    unsigned int i;
+
+    for (i = 0; i < CONFIG_I2C_COUNT; i++) {
+	spi_to_i2c[i].t.i2cnum = i;
+	spi_to_i2c[i].t.done = spi_i2c_transaction_done;
+	spi_to_i2c[i].rspmsg.done = spi_rsp_done;
+	dlist_link_init(&spi_to_i2c[i].rspmsg.link);
+    }
 
     console_init(handle_command);
+
+    rv = sem_init(&spi_to_i2c_wake, 0, 0);
+    if (rv) {
+        printf("Error creating spi_to_i2c_wake: %d\n", rv);
+        while (true) {}
+    }
+
     GPIO_init();
     i2c_init();
+    spi_recv_msg_handler = handle_spi_recv_msg;
     spi_init();
     command_init();
 
@@ -61,6 +177,12 @@ mainThread(void *arg0)
     }
 
     rv = pthread_create(&thread, &task_attrs, spiThread, NULL);
+    if (rv != 0) {
+        while (1) {
+        }
+    }
+
+    rv = pthread_create(&thread, &task_attrs, spiI2cThread, NULL);
     if (rv != 0) {
         while (1) {
         }

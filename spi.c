@@ -174,6 +174,7 @@ spiThread(void *arg0)
 	    printf("Timeout waiting for SPI transaction, status = %d\n",
 		   transaction.status);
 	} else {
+#if 0
 	    if (rx_buf[0] != ACP_MSG_ID_INVALID) {
 		unsigned int i;
 		
@@ -182,6 +183,7 @@ spiThread(void *arg0)
 		    printf(" %2.2x", rx_buf[i]);
 		printf("\n");
 	    }
+#endif
 	    if (spi_recv_msg_handler)
 		spi_recv_msg_handler(rx_buf);
 

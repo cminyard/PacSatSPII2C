@@ -10,7 +10,7 @@
 
 #include "list.h"
 
-#define SPI_MSG_LEN 16
+#define SPI_MSG_LEN 32
 
 #define ACP_MSG_ID_INVALID 0xff
 
