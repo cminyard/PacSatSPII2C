@@ -29,4 +29,6 @@ int spi_send(struct spi_tx_msg *msg);
 
 extern void (*spi_recv_msg_handler)(unsigned char *msg);
 
+extern bool spi_trace;
+
 #endif /* SPI_H */

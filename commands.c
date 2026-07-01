@@ -239,6 +239,17 @@ spi_command(char **tokst)
     printf("Send complete\n");
 }
 
+static void
+trace_command(char **tokst)
+{
+    unsigned int val;
+
+    if (next_token_uint(tokst, &val, 0, "trace value"))
+	spi_trace = val;
+
+    printf("Trace set to %d\n", val);
+}
+
 /* Main command structure. */
 
 static void help_command(char **tokst);
@@ -268,6 +279,11 @@ const static struct command {
 	"spi", spi_command,
 	"tx1 [tx2 [....]]",
 	"Send a SPI message to the host."
+    },
+    {
+	"trace", trace_command,
+	"[0|1]",
+	"Enable/disable tracing."
     },
     {}
 };

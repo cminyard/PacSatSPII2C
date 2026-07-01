@@ -14,6 +14,8 @@
 #include "spii2c.h"
 #include "spi.h"
 
+bool spi_trace;
+
 static sem_t CS_sem;
 static sem_t SPI_done_sem;
 
@@ -66,6 +68,15 @@ void spi_transfer_done(SPI_Handle handle, SPI_Transaction *transaction)
 int
 spi_send(struct spi_tx_msg *msg)
 {
+    if (spi_trace) {
+	unsigned int i;
+
+	printf("Sending message:");
+	for (i = 0; i < SPI_MSG_LEN; i++)
+	    printf(" %2.2x", msg->buf[i]);
+	printf("\n");
+    }
+
     sem_wait(&queue_sem);
     dlist_add_tail(&tx_queue, &msg->link);
     sem_post(&queue_sem);
@@ -174,16 +185,15 @@ spiThread(void *arg0)
 	    printf("Timeout waiting for SPI transaction, status = %d\n",
 		   transaction.status);
 	} else {
-#if 0
-	    if (rx_buf[0] != ACP_MSG_ID_INVALID) {
+	    if (spi_trace && rx_buf[0] != ACP_MSG_ID_INVALID) {
 		unsigned int i;
-		
+
 		printf("Got rx message:");
 		for (i = 0; i < SPI_MSG_LEN; i++)
 		    printf(" %2.2x", rx_buf[i]);
 		printf("\n");
 	    }
-#endif
+
 	    if (spi_recv_msg_handler)
 		spi_recv_msg_handler(rx_buf);
 
