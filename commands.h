@@ -8,6 +8,8 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
+void command_init(void);
+
 void handle_command(char *cmd);
 
 #endif /* COMMANDS_H */

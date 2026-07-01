@@ -74,3 +74,31 @@ next_token_uint(char **state, unsigned int *val, int base, char *name)
 
     return token_to_uint(tok, val, base, name);
 }
+
+bool
+token_to_uint8(const char *tok, uint8_t *val, int base, char *name)
+{
+    unsigned int ival;
+
+    if (!token_to_uint(tok, &ival, base, name))
+	return false;
+    if (ival > 255) {
+	printf("%s: Value too large for byte\n", name);
+	return false;
+    }
+    *val = ival;
+    return true;
+}
+
+bool
+next_token_uint8(char **state, uint8_t *val, int base, char *name)
+{
+    char *tok = next_token(state);
+
+    if (!tok) {
+	printf("%s: Value is missing\n", name);
+	return false;
+    }
+
+    return token_to_uint8(tok, val, base, name);
+}

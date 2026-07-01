@@ -25,4 +25,10 @@ bool token_to_uint(const char *tok, unsigned int *val, int base, char *name);
  */
 bool next_token_uint(char **state, unsigned int *val, int base, char *name);
 
+/*
+ * Like the above, but for uint8_t;
+ */
+bool token_to_uint8(const char *tok, uint8_t *val, int base, char *name);
+bool next_token_uint8(char **state, uint8_t *val, int base, char *name);
+
 #endif /* TOKENS_H */

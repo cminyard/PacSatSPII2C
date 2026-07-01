@@ -6,14 +6,15 @@
  */
 
 #include <string.h>
+#include <semaphore.h>
 
 #include "ti_drivers_config.h"
 
 #include "spii2c.h"
 #include "tokens.h"
 #include "i2c.h"
+#include "spi.h"
 #include "commands.h"
-
 
 #include <ti/drivers/GPIO.h>
 
@@ -71,21 +72,25 @@ gpio_command(char **tokst)
     bool nlogic = false;
 
     if (!tok) {
-	pr_gpio("adc", CONFIG_GPIO_ADC_ENABLE, true);
-	pr_gpio("ant", CONFIG_GPIO_ANT_POW, true);
-	pr_gpio("ext", CONFIG_GPIO_EXTRA, false);
+	pr_gpio("adcpow", CONFIG_GPIO_ADC_ENABLE, true);
+	pr_gpio("antpow", CONFIG_GPIO_ANT_POW, true);
+	pr_gpio("hostirq", CONFIG_GPIO_HOST_IRQ, true);
+	pr_gpio("extra", CONFIG_GPIO_EXTRA, false);
 	pr_gpio("pc104_7", CONFIG_GPIO_PC104_7, false);
 	pr_gpio("pc104_8", CONFIG_GPIO_PC104_8, false);
 	return;
     }
 
-    if (strcmp(tok, "adc") == 0) {
+    if (strcmp(tok, "adcpos") == 0) {
 	gpionum = CONFIG_GPIO_ADC_ENABLE;
 	nlogic = true;
-    } else if (strcmp(tok, "ant") == 0) {
+    } else if (strcmp(tok, "antpow") == 0) {
 	gpionum = CONFIG_GPIO_ANT_POW;
 	nlogic = true;
-    } else if (strcmp(tok, "ext") == 0) {
+    } else if (strcmp(tok, "hostirq") == 0) {
+	gpionum = CONFIG_GPIO_HOST_IRQ;
+	nlogic = true;
+    } else if (strcmp(tok, "extra") == 0) {
 	gpionum = CONFIG_GPIO_EXTRA;
     } else if (strcmp(tok, "pc104_7") == 0) {
 	gpionum = CONFIG_GPIO_PC104_7;
@@ -117,17 +122,17 @@ static void
 i2c_command(char **tokst)
 {
     unsigned int i2cnum;
-    unsigned int tgtaddr;
+    uint8_t tgtaddr;
     unsigned int rx_count;
     uint8_t rx_data[32];
     unsigned int tx_count = 0;
     uint8_t tx_data[32];
     char *tok;
-    unsigned int i, v;
+    unsigned int i;
     
     if (!next_token_uint(tokst, &i2cnum, 0, "i2cnum"))
 	return;
-    if (!next_token_uint(tokst, &tgtaddr, 0, "tgtaddr"))
+    if (!next_token_uint8(tokst, &tgtaddr, 0, "tgtaddr"))
 	return;
     if (!next_token_uint(tokst, &rx_count, 0, "rx count"))
 	return;
@@ -151,9 +156,8 @@ i2c_command(char **tokst)
 	    printf("Too many tx bytes, limit is %d\n", sizeof(tx_data));
 	    return;
 	}
-	if (!token_to_uint(tok, &v, 0, "txval"))
+	if (!token_to_uint8(tok, &tx_data[tx_count], 0, "txval"))
 	    return;
-	tx_data[tx_count] = v;
 	tx_count++;
 	tok = next_token(tokst);
     }
@@ -170,6 +174,54 @@ i2c_command(char **tokst)
 	}
 	printf("\n");
     }
+}
+
+/* SPI */
+
+static sem_t spi_done_sem;
+
+static void
+spi_command_done(struct spi_tx_msg *msg)
+{
+    sem_post(&spi_done_sem);
+}
+
+static void
+spi_command(char **tokst)
+{
+    unsigned int tx_count = 0;
+    char *tok;
+    struct spi_tx_msg msg;
+    int err;
+
+    memset(&msg.buf, 0, sizeof(msg.buf));
+
+    if (!next_token_uint8(tokst, &msg.buf[0], 0, "txdata[0]"))
+	return;
+    tx_count++;
+
+    tok = next_token(tokst);
+    while (tok) {
+	if (tx_count >= sizeof(msg.buf)) {
+	    printf("Too many tx bytes, limit is %d\n", sizeof(msg.buf));
+	    return;
+	}
+	if (!token_to_uint8(tok, &msg.buf[tx_count], 0, "txval"))
+	    return;
+	tx_count++;
+	tok = next_token(tokst);
+    }
+
+    dlist_link_init(&msg.link);
+    msg.done = spi_command_done;
+    err = spi_send(&msg);
+    if (err) {
+	printf("SPI send failed\n");
+	return;
+    }
+
+    sem_wait(&spi_done_sem);
+    printf("Send complete\n");
 }
 
 /* Main command structure. */
@@ -196,6 +248,11 @@ const static struct command {
 	"i2c", i2c_command,
 	"<i2cnum> <tgtaddr> <rx count> [tx1 [tx2 [....]]]",
 	"Run an I2C transaction write the tx byes and read rx count bytes."
+    },
+    {
+	"spi", spi_command,
+	"tx1 [tx2 [....]]",
+	"Send a SPI message to the host."
     },
     {}
 };
@@ -231,3 +288,16 @@ handle_command(char *incmd)
     }
     printf("Unknown command: %s\n", cmd);
 }
+
+void
+command_init(void)
+{
+    int rv;
+
+    rv = sem_init(&spi_done_sem, 0, 1);
+    if (rv) {
+        printf("Error creating spi_done_sem: %d\n", rv);
+        while (true) {}
+    }
+}
+

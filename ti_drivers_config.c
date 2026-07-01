@@ -390,14 +390,17 @@ const SPIMSPM0_HWAttrs SPIMSPM0_hwAttrs[CONFIG_SPI_COUNT] = {
         .sclkPin    = GPIO_SPI0_SCLK_PIN,
         .sclkPincm  = GPIO_SPI0_IOMUX_SCLK,
         .sclkPinMux = GPIO_SPI0_IOMUX_SCLK_FUNC,
-
+#if 0
+	.cssel = SPI_CHIP_SELECT_NONE,
+        .csnPin = GPIO_INVALID_INDEX,
+#else
+	.cssel = SPI_CHIP_SELECT_0,
         .csnPin    = GPIO_SPI0_CS0_PIN,
         .csnPincm  = GPIO_SPI0_IOMUX_CS0,
         .csnPinMux = GPIO_SPI0_IOMUX_CS0_FUNC,
-
+#endif
         .txFifoThreshold = DL_SPI_TX_FIFO_LEVEL_ONE_FRAME,
         .rxFifoThreshold = DL_SPI_RX_FIFO_LEVEL_ONE_FRAME,
-        .cssel           = 0,
         .noOfDMAChannels = 2,
     },
 };

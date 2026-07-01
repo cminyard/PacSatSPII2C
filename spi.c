@@ -10,6 +10,7 @@
 #include <time.h>
 
 #include "ti_drivers_config.h"
+#include <ti/drivers/spi/SPIMSPM0.h>
 #include "spii2c.h"
 #include "spi.h"
 
@@ -54,9 +55,12 @@ void gpio_CS(uint_least8_t index)
     sem_post(&CS_sem);
 }
 
+volatile bool spi_transfer_waiting;
+
 void spi_transfer_done(SPI_Handle handle, SPI_Transaction *transaction)
 {
-    sem_post(&SPI_done_sem);
+    if (spi_transfer_waiting)
+	sem_post(&SPI_done_sem);
 }
 
 int
@@ -76,15 +80,28 @@ spiThread(void *arg0)
     SPI_Handle handle;
     SPI_Params params;
     SPI_Transaction transaction;
-    static unsigned char dummy_tx_buf[SPI_MSG_LEN] = {0xff};
+    static unsigned char dummy_tx_buf[SPI_MSG_LEN] = { ACP_MSG_ID_INVALID };
     static unsigned char rx_buf[SPI_MSG_LEN];
     struct timespec timeout;
     int rv;
     struct spi_tx_msg *tx_msg;
-    
-    GPIO_setConfig(CONFIG_GPIO_ANT_IRQ,
-		   GPIO_CFG_OUT_STD | CONFIG_GPIO_ANT_IRQ_IOMUX);
-    GPIO_write(CONFIG_GPIO_ANT_IRQ, CONFIG_ANT_IRQ_OFF);
+
+    GPIO_setConfig(CONFIG_GPIO_HOST_IRQ,
+		   GPIO_CFG_OUT_STD | CONFIG_GPIO_HOST_IRQ_IOMUX |
+		   GPIO_CFG_OUT_HIGH);
+
+    /* Set up for a SPI transfer. */
+    SPI_Params_init(&params);
+    params.frameFormat = SPI_MOTO4_POL0_PHA0;
+    params.mode = SPI_PERIPHERAL;
+    params.transferCallbackFxn = spi_transfer_done;
+    params.transferMode = SPI_MODE_CALLBACK;
+    params.bitRate = 500000;
+    handle = SPI_open(ACP_HOST_SPI, &params);
+    if (handle == NULL) {
+	printf("Error initializing SPI peripheral\n");
+	while (true) {}
+    }
 
     while (true) {
 	/* Grab CS from the SPI controller so we can monitor it. */
@@ -96,7 +113,7 @@ spiThread(void *arg0)
 
 	sem_wait(&queue_sem);
 	while (GPIO_read(GPIO_SPI0_CS0_PIN) == CONFIG_ANT_CS_OFF
-	       && !dlist_empty(&tx_queue)) {
+	       && dlist_empty(&tx_queue)) {
 	    sem_post(&queue_sem);
 	    sem_wait(&CS_sem);
 	    sem_wait(&queue_sem);
@@ -106,24 +123,16 @@ spiThread(void *arg0)
 
 	sem_post(&queue_sem);
 
-	/* Now put the CS line back to SPI use. */
+	/*
+	 * Now put the CS line back to SPI use.
+	 *
+	 * SPIMSPM0_CMD_SET_CSN_PIN does not work right for this, it
+	 * resets the pin and sets a new one.  Not what we want.
+	 */
 	GPIO_disableInt(GPIO_SPI0_CS0_PIN);
 	GPIO_setConfigAndMux(GPIO_SPI0_CS0_PIN,
 			     (GPIO_CFG_INPUT | GPIO_SPI0_IOMUX_CS0),
 			     GPIO_SPI0_IOMUX_CS0_FUNC);
-
-	/* Set up for a SPI transfer. */
-	SPI_Params_init(&params);
-	params.frameFormat = SPI_MOTO4_POL0_PHA0;
-	params.mode = SPI_PERIPHERAL;
-	params.transferCallbackFxn = spi_transfer_done;
-	params.transferMode = SPI_MODE_CALLBACK;
-	params.bitRate = 500000;
-	handle = SPI_open(ACP_HOST_SPI, &params);
-	if (handle == NULL) {
-	    printf("Error initializing SPI peripheral\n");
-	    while (true) {}
-	}
 
 	transaction.count = SPI_MSG_LEN;
 	if (tx_msg)
@@ -131,13 +140,17 @@ spiThread(void *arg0)
 	else
 	    transaction.txBuf = dummy_tx_buf;
 	transaction.rxBuf = rx_buf;
+
+	//SPI_control(handle, SPIMSPM0_CMD_RETURN_PARTIAL_ENABLE, NULL);
 	if (!SPI_transfer(handle, &transaction)) {
-	    printf("Error from SPI_Transfer\n");
+	    printf("Error from SPI_Transfer: %d\n", transaction.status);
 	    while (true) {}
 	}
 
+	spi_transfer_waiting = true;
+
 	/* Signal the other side that we are ready. */
-	GPIO_write(CONFIG_GPIO_ANT_IRQ, CONFIG_ANT_IRQ_ON);
+	GPIO_write(CONFIG_GPIO_HOST_IRQ, CONFIG_HOST_IRQ_ON);
 
 	/* Wait for transaction to complete. */
 	if (clock_gettime(CLOCK_REALTIME, &timeout) == -1) {
@@ -147,12 +160,28 @@ spiThread(void *arg0)
 	timeout.tv_sec += 1; /* One second, maybe too much? */
 	rv = sem_timedwait(&SPI_done_sem, &timeout);
 
-	/* We are no longer ready for a transfer. */
-	GPIO_write(CONFIG_GPIO_ANT_IRQ, CONFIG_ANT_IRQ_ON);
+	spi_transfer_waiting = false;
 
-	if (rv == -1) {
-	    printf("Timeout waiting for SPI transaction\n");
+	/* We are no longer ready for a transfer. */
+	GPIO_write(CONFIG_GPIO_HOST_IRQ, CONFIG_HOST_IRQ_OFF);
+
+	if (transaction.status == SPI_TRANSFER_STARTED) {
+	    /* Never got a transaction */
+	    SPI_transferCancel(handle);
+	    printf("Transaction didn't happen\n");
+	} else if (rv == -1) {
+	    SPI_transferCancel(handle);
+	    printf("Timeout waiting for SPI transaction, status = %d\n",
+		   transaction.status);
 	} else {
+	    if (rx_buf[0] != ACP_MSG_ID_INVALID) {
+		unsigned int i;
+		
+		printf("Got rx message:");
+		for (i = 0; i < SPI_MSG_LEN; i++)
+		    printf(" %2.2x", rx_buf[i]);
+		printf("\n");
+	    }
 	    if (spi_recv_msg_handler)
 		spi_recv_msg_handler(rx_buf);
 
@@ -164,11 +193,7 @@ spiThread(void *arg0)
 		    tx_msg->done(tx_msg);
 	    }
 	}
-
-	/* SPI transfer is done, disable SPI. */
-	SPI_close(handle);
     }
 
     return NULL;
 }
-

@@ -12,11 +12,7 @@
 
 #define SPI_MSG_LEN 16
 
-void spi_init(void);
-
-void *spiThread(void *arg0);
-
-extern void (*spi_recv_msg_handler)(unsigned char *msg);
+#define ACP_MSG_ID_INVALID 0xff
 
 struct spi_tx_msg {
     struct dlist_link link;
@@ -24,5 +20,13 @@ struct spi_tx_msg {
     unsigned char buf[SPI_MSG_LEN];
     void (*done)(struct spi_tx_msg *msg);
 };
+
+void spi_init(void);
+
+void *spiThread(void *arg0);
+
+int spi_send(struct spi_tx_msg *msg);
+
+extern void (*spi_recv_msg_handler)(unsigned char *msg);
 
 #endif /* SPI_H */

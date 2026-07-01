@@ -101,11 +101,11 @@ void UART0_IRQHandler(void);
 #define CONFIG_GPIO_PC104_8_IOMUX IOMUX_PINCM42
 
 /* IRQ from the antenna control processor to the main processor. */
-#define CONFIG_GPIO_ANT_IRQ 3  //PA3
-#define CONFIG_GPIO_ANT_IRQ_IOMUX IOMUX_PINCM8
+#define CONFIG_GPIO_HOST_IRQ 3  //PA3
+#define CONFIG_GPIO_HOST_IRQ_IOMUX IOMUX_PINCM8
 /* Negative Logic */
-#define CONFIG_ANT_IRQ_ON 0
-#define CONFIG_ANT_IRQ_OFF 1
+#define CONFIG_HOST_IRQ_ON 0
+#define CONFIG_HOST_IRQ_OFF 1
 
 /* The range of pins available on this device */
 extern const uint_least8_t GPIO_pinLowerBound;
