@@ -8,9 +8,20 @@
 #ifndef I2C_H
 #define I2C_H
 
+#include <ti/drivers/I2C.h>
+
+struct i2c_transaction {
+    I2C_Transaction t;
+    unsigned int i2cnum;
+    bool status;
+    void (*done)(struct i2c_transaction *transaction);
+    void *user_data;
+};
+
 void i2c_init(void);
 
-bool i2c_transaction(unsigned int i2cnum, unsigned int addr,
+bool i2c_transaction(struct i2c_transaction *t,
+		     unsigned int i2cnum, unsigned int addr,
 		     void *tx, unsigned int tx_size,
 		     void *rx, unsigned int rx_size);
 

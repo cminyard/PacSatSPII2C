@@ -21,7 +21,10 @@
  */ 
 int iprintf(const char *fmt, ...);
 
-#define MAIN_THREAD_STACK_SIZE configMINIMAL_STACK_SIZE * 5
+#define MAIN_THREAD_STACK_SIZE configMINIMAL_STACK_SIZE * 6
 #define SPI_THREAD_STACK_SIZE configMINIMAL_STACK_SIZE * 5
+
+#define container_of(ptr, type, member)          \
+    ((type *)(((char *) ptr) - offsetof(type, member)))
 
 #endif /* SPII2C_H */

@@ -118,6 +118,14 @@ gpio_command(char **tokst)
 
 /* I2C */
 
+static sem_t i2c_done_sem;
+
+static void
+i2c_transaction_done(struct i2c_transaction *t)
+{
+    sem_post(&i2c_done_sem);
+}
+
 static void
 i2c_command(char **tokst)
 {
@@ -129,6 +137,7 @@ i2c_command(char **tokst)
     uint8_t tx_data[32];
     char *tok;
     unsigned int i;
+    struct i2c_transaction t;
     
     if (!next_token_uint(tokst, &i2cnum, 0, "i2cnum"))
 	return;
@@ -162,17 +171,23 @@ i2c_command(char **tokst)
 	tok = next_token(tokst);
     }
 
-    if (!i2c_transaction(i2cnum, tgtaddr, tx_data, tx_count, rx_data,
+    t.done = i2c_transaction_done;
+    if (!i2c_transaction(&t, i2cnum, tgtaddr, tx_data, tx_count, rx_data,
 			 rx_count)) {
 	printf("I2C transaction failed\n");
     } else {
-	printf("Read: ");
-	for (i = 0; i < rx_count; i++) {
-	    if (i % 16 == 0)
-		printf("\n ");
-	    printf(" %2.2x", rx_data[i]);
+	sem_wait(&i2c_done_sem);
+	if (!t.status) {
+	    printf("I2C transaction failed\n");
+	} else {
+	    printf("Read: ");
+	    for (i = 0; i < rx_count; i++) {
+		if (i % 16 == 0)
+		    printf("\n ");
+		printf(" %2.2x", rx_data[i]);
+	    }
+	    printf("\n");
 	}
-	printf("\n");
     }
 }
 
@@ -294,7 +309,12 @@ command_init(void)
 {
     int rv;
 
-    rv = sem_init(&spi_done_sem, 0, 1);
+    rv = sem_init(&i2c_done_sem, 0, 0);
+    if (rv) {
+        printf("Error creating i2c_done_sem: %d\n", rv);
+        while (true) {}
+    }
+    rv = sem_init(&spi_done_sem, 0, 0);
     if (rv) {
         printf("Error creating spi_done_sem: %d\n", rv);
         while (true) {}
