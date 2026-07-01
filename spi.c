@@ -14,11 +14,30 @@
 #include "spii2c.h"
 #include "spi.h"
 
+/*
+ * This code implements the SPI protocol as a peripheral on the SPI bus.
+ *
+ * It sets up a SPI device as a peripheral with a chip select (CS) but
+ * that pin has some unusual properties.  This code will steal the CS
+ * line at the start of processing and set it up as a GPIO with an
+ * interrupt handler.  When CS is asserted this will wake up the loop,
+ * which then sets up a SPI transaction.  This code will then git the
+ * CS line back to the SPI driver and assert the host interrupt line
+ * to tell the host it can run the transaction.
+ *
+ * When the transaction is over, CS is then stolen back as a GPIO and
+ * the host interrupt is de-asserted.
+ */
+
 bool spi_trace;
 
+/* Posted when chip select is asserted. */
 static sem_t CS_sem;
+
+/* Posted when a SPI transaction completes. */
 static sem_t SPI_done_sem;
 
+/* A queue of messages to be sent on the SPI bus. */
 static struct dlist tx_queue;
 static sem_t queue_sem;
 

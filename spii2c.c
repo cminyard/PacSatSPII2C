@@ -22,6 +22,11 @@
 #include "i2c.h"
 #include "spi.h"
 
+/*
+ * The code below is the main code to convert SPI transaction to I2C
+ * transaction and to read/write GPIOs.
+ */
+
 #define MAX_I2C_MSG_SIZE (SPI_MSG_LEN - 5)
 
 struct spi_to_i2c {
