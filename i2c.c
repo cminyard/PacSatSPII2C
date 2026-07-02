@@ -23,7 +23,7 @@ i2c_transfer_done(I2C_Handle handle, I2C_Transaction *transaction,
 					     struct i2c_transaction, t);
 
     i2c_inuse[t->i2cnum] = false;
-    t->status = transferStatus;
+    t->status = -transaction->status;
 
     if (t->done)
 	t->done(t);

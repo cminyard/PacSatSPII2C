@@ -95,7 +95,7 @@ static void handle_spi_recv_msg(unsigned char *msg)
 	if (s2i->inuse)
 	    break;
 	s2i->inuse = true;
-	s2i->t.status = false;
+	s2i->t.status = -1;
 
 	if (msg[2] >= MAX_I2C_MSG_SIZE)
 	    goto return_fail;
