@@ -135,7 +135,7 @@ Return the results of an I2C transaction.
 |1		|I2C bus		| The I2C bus to target (0-2) |
 |2		|Result			| 0 for success, non-zero for failure |
 |3		|RX Count		| The number of bytes received (0-27) |
-|4		|unused			|  |
+|4		|I2C Address	| Target address |
 |5-31	|Rx Data		| Received data |
 
 ### SET\_GPIO (host->peripheral)

@@ -32,6 +32,7 @@
 
 struct spi_to_i2c {
     uint8_t txbuf[MAX_I2C_MSG_SIZE];
+    uint8_t addr;
     unsigned int txcount;
     unsigned int rxcount;
     volatile bool inuse;
@@ -103,9 +104,10 @@ static void handle_spi_recv_msg(unsigned char *msg)
 	    goto return_fail;
 	s2i->txcount = msg[2];
 	s2i->rxcount = msg[3];
+	s2i->addr = msg[4];
 	memset(s2i->rspmsg.buf, 0, SPI_MSG_LEN);
 	memcpy(s2i->txbuf, &msg[5], s2i->txcount);
-	if (!i2c_transaction(&s2i->t, i2cnum, msg[4],
+	if (!i2c_transaction(&s2i->t, i2cnum, s2i->addr,
 			     s2i->txbuf, s2i->txcount,
 			     &s2i->rspmsg.buf[5], s2i->rxcount)) {
 	return_fail:
@@ -172,16 +174,19 @@ spiI2cThread(void *arg0)
 	sem_wait(&spi_to_i2c_wake);
 
 	for (i = 0; i < CONFIG_I2C_COUNT; i++) {
-	    if (!spi_to_i2c[i].done)
+	    struct spi_to_i2c *s2i = &spi_to_i2c[i];
+
+	    if (!s2i->done)
 		continue;
-	    msg = spi_to_i2c[i].rspmsg.buf;
+	    msg = s2i->rspmsg.buf;
 	    msg[0] = ACP_I2C_RSP;
 	    msg[1] = i;
-	    msg[2] = spi_to_i2c[i].t.status;
-	    msg[3] = spi_to_i2c[i].rxcount;
+	    msg[2] = s2i->t.status;
+	    msg[3] = s2i->rxcount;
+	    msg[4] = s2i->addr;
 	    /* Message data is already in the buffer. */
-	    spi_to_i2c[i].done = false;
-	    spi_send(&spi_to_i2c[i].rspmsg);
+	    s2i->done = false;
+	    spi_send(&s2i->rspmsg);
 	}
     }
 }
