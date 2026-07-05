@@ -76,6 +76,16 @@ i2c_transaction(struct i2c_transaction *t,
     t->t.writeCount = tx_size;
     t->t.readBuf = rx;
     t->t.readCount = rx_size;
+
+    /*
+     * Start an I2C transaction.  i2c_transfer_done() will be called
+     * when it's complete.
+     *
+     * Note that this function will hang if the I2C clock line is hung
+     * by some external mechanism (or missing a pull-up, as I found
+     * out by experience).  There's not much that can be done about it
+     * without re-writing TI's code here.
+     */
     err = I2C_transferTimeout(i2c_handles[i2cnum], &t->t, 200);
     if (err != I2C_STATUS_SUCCESS) {
 	printf("Error from I2C: %d\n", rv);
