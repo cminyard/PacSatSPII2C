@@ -1,6 +1,6 @@
 /*
  *  SPII2C - A program for a SPI to I2C converter device
- *  Copyright (C) 2036  Corey Minyard <corey@minyard.net
+ *  Copyright (C) 2026  Corey Minyard <corey@minyard.net>
  *
  *  SPDX-License-Identifier: GPL-2.0-only
  */
@@ -42,12 +42,6 @@ struct spi_to_i2c {
 };
 
 struct spi_to_i2c spi_to_i2c[CONFIG_I2C_COUNT];
-
-#define ACP_I2C_CMD 1
-#define ACP_I2C_RSP 2
-#define ACP_SET_GPIO 3
-#define ACP_GET_GPIO 4
-#define ACP_GPIO_VALUE 5
 
 #define NUM_ACP_GPIOS 5
 struct gpio_acp {
@@ -220,6 +214,7 @@ mainThread(void *arg0)
     spi_recv_msg_handler = handle_spi_recv_msg;
     spi_init();
     command_init();
+    adc_init();
 
     GPIO_setConfig(CONFIG_GPIO_ADC_ENABLE,
 		   GPIO_CFG_OUT_STD | CONFIG_GPIO_ADC_ENABLE_IOMUX |
@@ -258,7 +253,13 @@ mainThread(void *arg0)
         while (1) {
         }
     }
-
+#if 1
+    rv = pthread_create(&thread, &task_attrs, adcThread, NULL);
+    if (rv != 0) {
+        while (1) {
+        }
+    }
+#endif
     /* We use this thread for the console thread. */
     consoleThread(arg0);
     return NULL;

@@ -1,6 +1,6 @@
 /*
  *  SPII2C - A program for a SPI to I2C converter device
- *  Copyright (C) 2036  Corey Minyard <corey@minyard.net
+ *  Copyright (C) 2026  Corey Minyard <corey@minyard.net>
  *
  *  SPDX-License-Identifier: GPL-2.0-only
  */
@@ -70,6 +70,7 @@ i2c_transaction(struct i2c_transaction *t,
     i2c_inuse[i2cnum] = true;
     sem_post(&i2c_sem[i2cnum]);
 
+    t->status = I2C_ACP_STATUS_ERROR;
     t->i2cnum = i2cnum;
     t->t.targetAddress = addr;
     t->t.writeBuf = tx;

@@ -1,6 +1,6 @@
 /*
  *  SPII2C - A program for a SPI to I2C converter device
- *  Copyright (C) 2036  Corey Minyard <corey@minyard.net
+ *  Copyright (C) 2026  Corey Minyard <corey@minyard.net>
  *
  *  SPDX-License-Identifier: GPL-2.0-only
  */
@@ -178,7 +178,7 @@ i2c_command(char **tokst)
 	printf("I2C transaction failed\n");
     } else {
 	sem_wait(&i2c_done_sem);
-	if (!t.status) {
+	if (t.status) {
 	    printf("I2C transaction failed\n");
 	} else {
 	    printf("Read: ");
