@@ -248,7 +248,35 @@ trace_command(char **tokst)
     if (next_token_uint(tokst, &val, 0, "trace value"))
 	spi_trace = val;
 
-    printf("Trace set to %d\n", val);
+    printf("Trace set to %d\n", spi_trace);
+}
+
+static void
+sendadc_command(char **tokst)
+{
+    unsigned int val;
+
+    if (next_token_uint(tokst, &val, 0, "send ADC values"))
+	send_adc_vals = val;
+
+    printf("Send ADC values set to %d\n", send_adc_vals);
+}
+
+static void
+adc_command(char **tokst)
+{
+    unsigned int adc;
+    int16_t adcval;
+
+    if (!next_token_uint(tokst, &adc, 0, "ADC num"))
+	return;
+
+    if (!read_adc(adc, &adcval)) {
+	printf("Unable to read the ADC value.\n");
+	return;
+    }
+
+    printf("ADC %u is %d\n", adc, adcval);
 }
 
 /* Main command structure. */
@@ -285,6 +313,16 @@ const static struct command {
 	"trace", trace_command,
 	"[0|1]",
 	"Enable/disable tracing."
+    },
+    {
+	"sendadc", sendadc_command,
+	"[0|1]",
+	"Enable/disable ADC sending."
+    },
+    {
+	"adc", adc_command,
+	"<adc num (0-7)>",
+	"Get the ADC value."
     },
     {}
 };

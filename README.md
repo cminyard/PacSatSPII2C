@@ -173,19 +173,20 @@ Return a GPIO pin value.
 ### ADC\_REPORT (peripheral->host)
 
 Send once a second to report the ADC values.  Value are signed 16-bit
-values, big endian.
+values, big endian.  The pins are pin number on the ADC 10-pin
+connector.
 
 |byte	|Name			|Description |
 |----	|------------	|----------- |
 |0		|ADC\_Report (6)|  |
 |1		|flags			| bit for each ADC being valid |
-|2-3	|Value1			| ADC value for ADC 1 |
-|4-5	|Value2			| ADC value for ADC 2 |
-|6-7	|Value3			| ADC value for ADC 3 |
-|8-9	|Value4			| ADC value for ADC 4 |
-|10-11	|Value5			| ADC value for ADC 5 |
-|12-13	|Value6			| ADC value for ADC 6 |
-|14-15	|Value7			| ADC value for ADC 7 |
-|16-17	|Value8			| ADC value for ADC 8 |
+|2-3	|Value1			| ADC value for ADC 1 (pin 6) |
+|4-5	|Value2			| ADC value for ADC 2 (pin 7) |
+|6-7	|Value3			| ADC value for ADC 3 (pin 8) |
+|8-9	|Value4			| ADC value for ADC 4 (pin 9) |
+|10-11	|Value5			| ADC value for ADC 5 (pin 10) |
+|12-13	|Value6			| ADC value for ADC 6 (USB 5V) |
+|14-15	|Value7			| ADC value for ADC 7 (USB 3.3V) |
+|16-17	|Value8			| ADC value for ADC 8 (spare) |
 |18-31	|unused			|  |
 

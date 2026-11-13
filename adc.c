@@ -155,7 +155,50 @@ read_adc_value(uint8_t addr, int muxnum, int bitnum,
     adc_transfer_waiting = false;
 }
 
+/*
+ * ADC inputs don't map cleanly.  Make it easier to use by mapping
+ * in a sane manner to pins on the ADC connector.
+ */
+static uint8_t map_adc[8] = {
+    3, /* Pin 6 */
+    2, /* Pin 7 */
+    0, /* Pin 8 */
+    1, /* Pin 9 */
+    4, /* Pin 10 */
+    5, /* USB 5V */
+    6, /* USB 3.3V */
+    7  /* spare */
+};
+
+static void
+read_adc_map(unsigned int adcnum, uint8_t *rval, uint8_t *flag)
+{
+    uint8_t addr = 0x48;
+    /* Use the bottom 2 bits to address the ADC on the chip. */
+    uint8_t num = map_adc[adcnum];
+
+    if (num >= 4) /* Second ADC. */
+	addr = 0x49;
+    num %= 4;
+    read_adc_value(addr, num, adcnum, rval, flag);
+}
+
+bool
+read_adc(unsigned int adcnum, int16_t *rval)
+{
+    uint8_t flag = 0;
+    uint8_t val[2];
+
+    if (adcnum >= 8)
+	return false;
+    read_adc_map(adcnum, &val, &flag);
+    if (flag)
+	*rval = (((int16_t) val[0]) << 8) | val[1];
+    return !!flag;
+}
+
 volatile bool adc_spi_inuse;
+bool send_adc_vals = true;
 
 static void
 adc_spi_done(struct spi_tx_msg *msg)
@@ -169,12 +212,15 @@ adcThread(void *arg0)
     struct spi_tx_msg msg;
     unsigned int i;
 
+    memset(&msg, 0, sizeof(msg));
     dlist_link_init(&msg.link);
     msg.done = adc_spi_done;
     while (true) {
 	struct timespec timeout = { 1, 0 };
 
 	clock_nanosleep(CLOCK_REALTIME, 0, &timeout, NULL);
+	if (!send_adc_vals)
+	    continue;
 
 	if (adc_spi_inuse) {
 	    printf("ADC SPI message still in use.\n");
@@ -184,10 +230,8 @@ adcThread(void *arg0)
 
 	msg.buf[0] = ACP_ADC_REPORT;
 	msg.buf[1] = 0;
-	for (i = 0; i < 4; i++)
-	    read_adc_value(0x48, i, i, &msg.buf[i * 2 + 2], &msg.buf[1]);
-	for (i = 0; i < 4; i++)
-	    read_adc_value(0x49, i, i + 4, &msg.buf[i * 2 + 10], &msg.buf[1]);
+	for (i = 0; i < 8; i++)
+	    read_adc_map(i, &msg.buf[i * 2 + 2], &msg.buf[1]);
 	spi_send(&msg);
     }
 

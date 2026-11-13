@@ -10,6 +10,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <FreeRTOS.h>
 #include <task.h>
@@ -29,6 +30,12 @@ int iprintf(const char *fmt, ...);
 
 void adc_init(void);
 void *adcThread(void *arg0);
+
+/* Send the ADC values periodically over the SPI? */
+extern bool send_adc_vals;
+
+/* Read the given ADC.  Returns true on success, false on failure. */
+bool read_adc(unsigned int adcnum, int16_t *rval);
 
 /*
  * Message numbers, see README.md for details.

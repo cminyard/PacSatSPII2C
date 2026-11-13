@@ -21,7 +21,7 @@
  * that pin has some unusual properties.  This code will steal the CS
  * line at the start of processing and set it up as a GPIO with an
  * interrupt handler.  When CS is asserted this will wake up the loop,
- * which then sets up a SPI transaction.  This code will then git the
+ * which then sets up a SPI transaction.  This code will then give the
  * CS line back to the SPI driver and assert the host interrupt line
  * to tell the host it can run the transaction.
  *
